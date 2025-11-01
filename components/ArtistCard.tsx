@@ -115,7 +115,7 @@ export default function ArtistCard({ artist, index }: ArtistCardProps) {
         <div className="text-sm text-gray-400">#{index + 1}</div>
         <div className="text-white font-semibold">{artist.name}</div>
         <div className="text-sm text-gray-400">
-          Popularity: {artist.popularity}
+          Your top artist
         </div>
       </div>
     </a>

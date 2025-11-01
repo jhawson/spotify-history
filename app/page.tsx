@@ -2,7 +2,6 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
-import ArtistsPieChart from "@/components/ArtistsPieChart";
 import ArtistsTimeline from "@/components/ArtistsTimeline";
 import ArtistCard from "@/components/ArtistCard";
 import SpotifyPlayerControls from "@/components/SpotifyPlayerControls";
@@ -164,12 +163,14 @@ export default function Home() {
 
         {!loading && !error && artists.length > 0 && (
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-2xl">
-            <h2 className="text-2xl font-semibold text-white mb-6">
-              Top 20 Artists Popularity Distribution
+            <h2 className="text-2xl font-semibold text-white mb-2">
+              Your Top 20 Artists
             </h2>
-            <ArtistsPieChart artists={artists} />
+            <p className="text-gray-400 mb-6">
+              Ranked by your listening history from the past year
+            </p>
 
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {artists.slice(0, 20).map((artist, index) => (
                 <ArtistCard key={artist.id || artist.name} artist={artist} index={index} />
               ))}

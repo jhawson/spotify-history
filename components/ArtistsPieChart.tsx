@@ -20,6 +20,12 @@ interface ArtistsPieChartProps {
 export default function ArtistsPieChart({ artists }: ArtistsPieChartProps) {
   const topArtists = artists.slice(0, 20);
 
+  // Calculate listening scores based on ranking position
+  // Higher rank = more listening time (estimated)
+  const calculateListeningScore = (index: number, total: number) => {
+    return total - index;
+  };
+
   const generateColors = (count: number) => {
     const colors = [
       "#FF6B6B", // Coral Red
@@ -50,8 +56,8 @@ export default function ArtistsPieChart({ artists }: ArtistsPieChartProps) {
     labels: topArtists.map((artist) => artist.name),
     datasets: [
       {
-        label: "Popularity",
-        data: topArtists.map((artist) => artist.popularity),
+        label: "Listening Score",
+        data: topArtists.map((artist, index) => calculateListeningScore(index, topArtists.length)),
         backgroundColor: generateColors(topArtists.length),
         borderColor: "#121212",
         borderWidth: 2,
@@ -85,7 +91,9 @@ export default function ArtistsPieChart({ artists }: ArtistsPieChartProps) {
           label: function (context: any) {
             const label = context.label || "";
             const value = context.parsed || 0;
-            return `${label}: ${value} popularity`;
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const percentage = ((value / total) * 100).toFixed(1);
+            return `${label}: ${percentage}% (Rank #${context.dataIndex + 1})`;
           },
         },
       },
