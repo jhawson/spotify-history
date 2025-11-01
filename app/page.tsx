@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import ArtistsPieChart from "@/components/ArtistsPieChart";
 import ArtistsTimeline from "@/components/ArtistsTimeline";
 import ArtistCard from "@/components/ArtistCard";
+import SpotifyPlayerControls from "@/components/SpotifyPlayerControls";
 
 interface Artist {
   id?: string;
@@ -101,24 +102,25 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-white mb-2">
-              Your Top Artists
-            </h1>
-            <p className="text-gray-400">
-              Based on your listening history from the past year
-            </p>
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-8 px-4 pb-32">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2">
+                Your Top Artists
+              </h1>
+              <p className="text-gray-400">
+                Based on your listening history from the past year
+              </p>
+            </div>
+            <button
+              onClick={() => signOut()}
+              className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200"
+            >
+              Sign Out
+            </button>
           </div>
-          <button
-            onClick={() => signOut()}
-            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-full transition-colors duration-200"
-          >
-            Sign Out
-          </button>
-        </div>
 
         {loading && (
           <div className="flex justify-center items-center h-64">
@@ -180,7 +182,9 @@ export default function Home() {
             No listening history found. Start listening to music on Spotify!
           </div>
         )}
+        </div>
       </div>
-    </div>
+      <SpotifyPlayerControls />
+    </>
   );
 }

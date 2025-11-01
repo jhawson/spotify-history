@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
+import { useSpotifyPlayer } from "@/contexts/SpotifyPlayerContext";
 
 interface Artist {
   id?: string;
@@ -19,60 +20,39 @@ interface ArtistCardProps {
 
 export default function ArtistCard({ artist, index }: ArtistCardProps) {
   const [isHovering, setIsHovering] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [trackUri, setTrackUri] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { playTrack, pausePlayback, isReady } = useSpotifyPlayer();
 
-  useEffect(() => {
-    // Cleanup on unmount
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-    };
-  }, []);
+  const fetchTrack = async () => {
+    if (!artist.id || trackUri || isLoading) return;
 
-  const fetchPreview = async () => {
-    if (!artist.id || previewUrl || isLoading) return;
-
-    console.log(`Fetching preview for ${artist.name} (ID: ${artist.id})`);
+    console.log(`[ArtistCard] Fetching track for ${artist.name} (ID: ${artist.id})`);
     setIsLoading(true);
     try {
       const response = await fetch(
-        `/api/spotify/artist-top-track?artistId=${artist.id}`
+        `/api/spotify/artist-tracks?artistId=${artist.id}`
       );
 
       if (response.ok) {
         const data = await response.json();
-        console.log(`Preview URL for ${artist.name}:`, data.previewUrl);
-        setPreviewUrl(data.previewUrl);
+        console.log(`[ArtistCard] Track URI for ${artist.name}:`, data.uri);
+        setTrackUri(data.uri);
 
-        // Play audio after fetching
-        if (data.previewUrl && audioRef.current) {
-          audioRef.current.src = data.previewUrl;
-          audioRef.current.volume = 0.5; // Increased volume
-          console.log(`Attempting to play preview for ${artist.name}`);
-          audioRef.current.play()
-            .then(() => {
-              console.log(`Successfully playing ${artist.name}`);
-            })
-            .catch((err) => {
-              console.error("Audio play failed:", err);
-            });
-        } else {
-          console.log(`No preview URL available for ${artist.name}`);
+        // Play the track
+        if (data.uri && isReady) {
+          console.log(`[ArtistCard] Playing track: ${data.name} by ${data.artistName}`);
+          await playTrack(data.uri);
+        } else if (!isReady) {
+          console.warn("[ArtistCard] Player not ready yet");
         }
       } else {
         const errorData = await response.json();
-        console.error(`API error for ${artist.name}:`, errorData);
+        console.error(`[ArtistCard] API error for ${artist.name}:`, errorData);
       }
     } catch (err) {
-      console.error("Failed to fetch preview:", err);
+      console.error("[ArtistCard] Failed to fetch track:", err);
     } finally {
       setIsLoading(false);
     }
@@ -81,20 +61,15 @@ export default function ArtistCard({ artist, index }: ArtistCardProps) {
   const handleMouseEnter = () => {
     setIsHovering(true);
 
-    // Delay preview fetch/play slightly to avoid accidental hovers
+    // Delay playback slightly to avoid accidental hovers
     hoverTimeoutRef.current = setTimeout(() => {
-      if (previewUrl && audioRef.current) {
-        audioRef.current.volume = 0.5;
-        console.log(`Playing cached preview for ${artist.name}`);
-        audioRef.current.play()
-          .then(() => {
-            console.log(`Successfully playing cached ${artist.name}`);
-          })
-          .catch((err) => {
-            console.error("Audio play failed:", err);
-          });
+      if (trackUri && isReady) {
+        console.log(`[ArtistCard] Playing cached track for ${artist.name}`);
+        playTrack(trackUri).catch((err) => {
+          console.error("[ArtistCard] Playback failed:", err);
+        });
       } else {
-        fetchPreview();
+        fetchTrack();
       }
     }, 300);
   };
@@ -102,53 +77,47 @@ export default function ArtistCard({ artist, index }: ArtistCardProps) {
   const handleMouseLeave = () => {
     setIsHovering(false);
 
-    // Clear timeout if user leaves before preview starts
+    // Clear timeout if user leaves before playback starts
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
 
-    // Pause audio
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
+    // Pause playback
+    pausePlayback();
   };
 
   return (
-    <>
-      <audio ref={audioRef} />
-      <a
-        href={artist.external_urls.spotify}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="bg-gray-700/50 rounded-lg p-4 flex items-center space-x-4 hover:bg-gray-600/50 transition-all duration-200 cursor-pointer relative group"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        {/* Playing indicator */}
-        {isHovering && (
-          <div className="absolute top-2 right-2 flex items-center space-x-1">
-            <div className="w-1 h-3 bg-green-500 rounded animate-pulse" style={{ animationDelay: "0ms" }} />
-            <div className="w-1 h-4 bg-green-500 rounded animate-pulse" style={{ animationDelay: "150ms" }} />
-            <div className="w-1 h-3 bg-green-500 rounded animate-pulse" style={{ animationDelay: "300ms" }} />
-          </div>
-        )}
-
-        {artist.images[0] && (
-          <img
-            src={artist.images[0].url}
-            alt={artist.name}
-            className="w-16 h-16 rounded-full object-cover ring-2 ring-transparent group-hover:ring-green-500/50 transition-all duration-200"
-          />
-        )}
-        <div className="flex-1">
-          <div className="text-sm text-gray-400">#{index + 1}</div>
-          <div className="text-white font-semibold">{artist.name}</div>
-          <div className="text-sm text-gray-400">
-            Popularity: {artist.popularity}
-          </div>
+    <a
+      href={artist.external_urls.spotify}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="bg-gray-700/50 rounded-lg p-4 flex items-center space-x-4 hover:bg-gray-600/50 transition-all duration-200 cursor-pointer relative group"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Playing indicator */}
+      {isHovering && isReady && (
+        <div className="absolute top-2 right-2 flex items-center space-x-1">
+          <div className="w-1 h-3 bg-green-500 rounded animate-pulse" style={{ animationDelay: "0ms" }} />
+          <div className="w-1 h-4 bg-green-500 rounded animate-pulse" style={{ animationDelay: "150ms" }} />
+          <div className="w-1 h-3 bg-green-500 rounded animate-pulse" style={{ animationDelay: "300ms" }} />
         </div>
-      </a>
-    </>
+      )}
+
+      {artist.images[0] && (
+        <img
+          src={artist.images[0].url}
+          alt={artist.name}
+          className="w-16 h-16 rounded-full object-cover ring-2 ring-transparent group-hover:ring-green-500/50 transition-all duration-200"
+        />
+      )}
+      <div className="flex-1">
+        <div className="text-sm text-gray-400">#{index + 1}</div>
+        <div className="text-white font-semibold">{artist.name}</div>
+        <div className="text-sm text-gray-400">
+          Popularity: {artist.popularity}
+        </div>
+      </div>
+    </a>
   );
 }

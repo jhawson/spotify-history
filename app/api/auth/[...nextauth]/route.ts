@@ -1,7 +1,7 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
 
-const scope = "user-top-read user-read-email";
+const scope = "user-top-read user-read-email streaming user-read-playback-state user-modify-playback-state";
 
 async function refreshAccessToken(token: any) {
   try {
