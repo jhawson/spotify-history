@@ -4,8 +4,10 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import ArtistsPieChart from "@/components/ArtistsPieChart";
 import ArtistsTimeline from "@/components/ArtistsTimeline";
+import ArtistCard from "@/components/ArtistCard";
 
 interface Artist {
+  id?: string;
   external_urls: {
     spotify: string;
   };
@@ -130,51 +132,9 @@ export default function Home() {
           </div>
         )}
 
-        {!loading && !error && artists.length > 0 && (
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-2xl">
-            <h2 className="text-2xl font-semibold text-white mb-6">
-              Top 20 Artists Popularity Distribution
-            </h2>
-            <ArtistsPieChart artists={artists} />
-
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {artists.slice(0, 20).map((artist, index) => (
-                <a
-                  key={artist.name}
-                  href={artist.external_urls.spotify}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-gray-700/50 rounded-lg p-4 flex items-center space-x-4 hover:bg-gray-600/50 transition-colors duration-200 cursor-pointer"
-                >
-                  {artist.images[0] && (
-                    <img
-                      src={artist.images[0].url}
-                      alt={artist.name}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <div className="text-sm text-gray-400">#{index + 1}</div>
-                    <div className="text-white font-semibold">{artist.name}</div>
-                    <div className="text-sm text-gray-400">
-                      Popularity: {artist.popularity}
-                    </div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {!loading && !error && artists.length === 0 && session && (
-          <div className="text-center text-gray-400 py-12">
-            No listening history found. Start listening to music on Spotify!
-          </div>
-        )}
-
         {/* Timeline Section */}
         {session && (
-          <div className="mt-12 bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-2xl">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-2xl mb-8">
             <h2 className="text-2xl font-semibold text-white mb-2">
               Your Top Artist Over Time
             </h2>
@@ -197,6 +157,27 @@ export default function Home() {
                 No timeline data available
               </div>
             )}
+          </div>
+        )}
+
+        {!loading && !error && artists.length > 0 && (
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-2xl">
+            <h2 className="text-2xl font-semibold text-white mb-6">
+              Top 20 Artists Popularity Distribution
+            </h2>
+            <ArtistsPieChart artists={artists} />
+
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {artists.slice(0, 20).map((artist, index) => (
+                <ArtistCard key={artist.id || artist.name} artist={artist} index={index} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!loading && !error && artists.length === 0 && session && (
+          <div className="text-center text-gray-400 py-12">
+            No listening history found. Start listening to music on Spotify!
           </div>
         )}
       </div>
