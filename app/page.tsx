@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import ArtistsPieChart from "@/components/ArtistsPieChart";
 
 interface Artist {
+  external_urls: {
+    spotify: string;
+  };
   name: string;
   images: { url: string }[];
   followers: { total: number };
@@ -111,9 +114,12 @@ export default function Home() {
 
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {artists.slice(0, 10).map((artist, index) => (
-                <div
+                <a
                   key={artist.name}
-                  className="bg-gray-700/50 rounded-lg p-4 flex items-center space-x-4"
+                  href={artist.external_urls.spotify}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-gray-700/50 rounded-lg p-4 flex items-center space-x-4 hover:bg-gray-600/50 transition-colors duration-200 cursor-pointer"
                 >
                   {artist.images[0] && (
                     <img
@@ -129,7 +135,7 @@ export default function Home() {
                       Popularity: {artist.popularity}
                     </div>
                   </div>
-                </div>
+                </a>
               ))}
             </div>
           </div>
