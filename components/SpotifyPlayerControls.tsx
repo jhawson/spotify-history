@@ -37,7 +37,7 @@ export default function SpotifyPlayerControls() {
                   {currentTrack.name}
                 </div>
                 <div className="text-gray-400 text-sm truncate">
-                  {currentTrack.artists.map((artist) => artist.name).join(", ")}
+                  {currentTrack.artists.map((artist: { name: string }) => artist.name).join(", ")}
                 </div>
               </div>
             </>
