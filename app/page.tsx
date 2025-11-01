@@ -3,6 +3,7 @@
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import ArtistsPieChart from "@/components/ArtistsPieChart";
+import ArtistsTimeline from "@/components/ArtistsTimeline";
 
 interface Artist {
   external_urls: {
@@ -14,15 +15,23 @@ interface Artist {
   popularity: number;
 }
 
+interface TimelineItem {
+  timeRange: string;
+  artist: Artist | null;
+}
+
 export default function Home() {
   const { data: session, status } = useSession();
   const [artists, setArtists] = useState<Artist[]>([]);
+  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [timelineLoading, setTimelineLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (session) {
       fetchTopArtists();
+      fetchTimeline();
     }
   }, [session]);
 
@@ -41,6 +50,22 @@ export default function Home() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTimeline = async () => {
+    setTimelineLoading(true);
+    try {
+      const response = await fetch("/api/spotify/top-artists-timeline");
+      if (!response.ok) {
+        throw new Error("Failed to fetch timeline");
+      }
+      const data = await response.json();
+      setTimeline(data.timeline);
+    } catch (err) {
+      console.error("Failed to load timeline:", err);
+    } finally {
+      setTimelineLoading(false);
     }
   };
 
@@ -144,6 +169,34 @@ export default function Home() {
         {!loading && !error && artists.length === 0 && session && (
           <div className="text-center text-gray-400 py-12">
             No listening history found. Start listening to music on Spotify!
+          </div>
+        )}
+
+        {/* Timeline Section */}
+        {session && (
+          <div className="mt-12 bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-2xl">
+            <h2 className="text-2xl font-semibold text-white mb-2">
+              Your Top Artist Over Time
+            </h2>
+            <p className="text-gray-400 mb-8">
+              See how your favorite artist has changed over different time periods
+            </p>
+
+            {timelineLoading && (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-white text-lg">Loading timeline...</div>
+              </div>
+            )}
+
+            {!timelineLoading && timeline.length > 0 && (
+              <ArtistsTimeline timeline={timeline} />
+            )}
+
+            {!timelineLoading && timeline.length === 0 && (
+              <div className="text-center text-gray-400 py-8">
+                No timeline data available
+              </div>
+            )}
           </div>
         )}
       </div>
