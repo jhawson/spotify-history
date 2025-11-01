@@ -40,6 +40,7 @@ export default function ArtistCard({ artist, index }: ArtistCardProps) {
   const fetchPreview = async () => {
     if (!artist.id || previewUrl || isLoading) return;
 
+    console.log(`Fetching preview for ${artist.name} (ID: ${artist.id})`);
     setIsLoading(true);
     try {
       const response = await fetch(
@@ -48,16 +49,27 @@ export default function ArtistCard({ artist, index }: ArtistCardProps) {
 
       if (response.ok) {
         const data = await response.json();
+        console.log(`Preview URL for ${artist.name}:`, data.previewUrl);
         setPreviewUrl(data.previewUrl);
 
         // Play audio after fetching
         if (data.previewUrl && audioRef.current) {
           audioRef.current.src = data.previewUrl;
-          audioRef.current.volume = 0.3;
-          audioRef.current.play().catch((err) => {
-            console.log("Audio play failed:", err);
-          });
+          audioRef.current.volume = 0.5; // Increased volume
+          console.log(`Attempting to play preview for ${artist.name}`);
+          audioRef.current.play()
+            .then(() => {
+              console.log(`Successfully playing ${artist.name}`);
+            })
+            .catch((err) => {
+              console.error("Audio play failed:", err);
+            });
+        } else {
+          console.log(`No preview URL available for ${artist.name}`);
         }
+      } else {
+        const errorData = await response.json();
+        console.error(`API error for ${artist.name}:`, errorData);
       }
     } catch (err) {
       console.error("Failed to fetch preview:", err);
@@ -72,10 +84,15 @@ export default function ArtistCard({ artist, index }: ArtistCardProps) {
     // Delay preview fetch/play slightly to avoid accidental hovers
     hoverTimeoutRef.current = setTimeout(() => {
       if (previewUrl && audioRef.current) {
-        audioRef.current.volume = 0.3;
-        audioRef.current.play().catch((err) => {
-          console.log("Audio play failed:", err);
-        });
+        audioRef.current.volume = 0.5;
+        console.log(`Playing cached preview for ${artist.name}`);
+        audioRef.current.play()
+          .then(() => {
+            console.log(`Successfully playing cached ${artist.name}`);
+          })
+          .catch((err) => {
+            console.error("Audio play failed:", err);
+          });
       } else {
         fetchPreview();
       }

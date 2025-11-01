@@ -48,6 +48,7 @@ export default function TimelineArtistCard({
   const fetchPreview = async () => {
     if (!artist.id || previewUrl || isLoading) return;
 
+    console.log(`[Timeline] Fetching preview for ${artist.name} (ID: ${artist.id})`);
     setIsLoading(true);
     try {
       const response = await fetch(
@@ -56,18 +57,29 @@ export default function TimelineArtistCard({
 
       if (response.ok) {
         const data = await response.json();
+        console.log(`[Timeline] Preview URL for ${artist.name}:`, data.previewUrl);
         setPreviewUrl(data.previewUrl);
 
         if (data.previewUrl && audioRef.current) {
           audioRef.current.src = data.previewUrl;
-          audioRef.current.volume = 0.3;
-          audioRef.current.play().catch((err) => {
-            console.log("Audio play failed:", err);
-          });
+          audioRef.current.volume = 0.5;
+          console.log(`[Timeline] Attempting to play preview for ${artist.name}`);
+          audioRef.current.play()
+            .then(() => {
+              console.log(`[Timeline] Successfully playing ${artist.name}`);
+            })
+            .catch((err) => {
+              console.error("[Timeline] Audio play failed:", err);
+            });
+        } else {
+          console.log(`[Timeline] No preview URL available for ${artist.name}`);
         }
+      } else {
+        const errorData = await response.json();
+        console.error(`[Timeline] API error for ${artist.name}:`, errorData);
       }
     } catch (err) {
-      console.error("Failed to fetch preview:", err);
+      console.error("[Timeline] Failed to fetch preview:", err);
     } finally {
       setIsLoading(false);
     }
@@ -78,10 +90,15 @@ export default function TimelineArtistCard({
 
     hoverTimeoutRef.current = setTimeout(() => {
       if (previewUrl && audioRef.current) {
-        audioRef.current.volume = 0.3;
-        audioRef.current.play().catch((err) => {
-          console.log("Audio play failed:", err);
-        });
+        audioRef.current.volume = 0.5;
+        console.log(`[Timeline] Playing cached preview for ${artist.name}`);
+        audioRef.current.play()
+          .then(() => {
+            console.log(`[Timeline] Successfully playing cached ${artist.name}`);
+          })
+          .catch((err) => {
+            console.error("[Timeline] Audio play failed:", err);
+          });
       } else {
         fetchPreview();
       }
