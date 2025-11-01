@@ -18,7 +18,7 @@ interface ArtistsPieChartProps {
 }
 
 export default function ArtistsPieChart({ artists }: ArtistsPieChartProps) {
-  const topArtists = artists.slice(0, 10);
+  const topArtists = artists.slice(0, 20);
 
   const generateColors = (count: number) => {
     const colors = [
@@ -32,6 +32,16 @@ export default function ArtistsPieChart({ artists }: ArtistsPieChartProps) {
       "#98D8C8", // Seafoam
       "#F7DC6F", // Bright Yellow
       "#BB8FCE", // Purple
+      "#FF6F91", // Bright Pink
+      "#5DADE2", // Sky Blue
+      "#F8B88B", // Peach
+      "#85C1E2", // Light Blue
+      "#FFB6B9", // Baby Pink
+      "#95E1D3", // Aquamarine
+      "#F9ED69", // Lemon Yellow
+      "#B983FF", // Violet
+      "#FDA7DF", // Orchid
+      "#AAF683", // Lime Green
     ];
     return colors.slice(0, count);
   };

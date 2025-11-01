@@ -108,12 +108,12 @@ export default function Home() {
         {!loading && !error && artists.length > 0 && (
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-2xl">
             <h2 className="text-2xl font-semibold text-white mb-6">
-              Top 10 Artists Popularity Distribution
+              Top 20 Artists Popularity Distribution
             </h2>
             <ArtistsPieChart artists={artists} />
 
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {artists.slice(0, 10).map((artist, index) => (
+              {artists.slice(0, 20).map((artist, index) => (
                 <a
                   key={artist.name}
                   href={artist.external_urls.spotify}
